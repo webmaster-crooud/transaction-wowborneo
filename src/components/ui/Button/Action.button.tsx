@@ -2,8 +2,8 @@ import React from 'react';
 import { twMerge } from 'tailwind-merge';
 
 type propsActionButton = {
+    title: React.ReactNode;
     className?: string;
-    title: string;
     onClick?: () => void;
 };
 export const ActionButton: React.FC<propsActionButton> = ({ className, title, onClick }) => (
