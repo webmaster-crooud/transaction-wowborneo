@@ -1,13 +1,15 @@
-import { Services } from '@/types';
+import { Service } from '@/types';
 
-export const dataServices: Services[] = [
+export const dataServices: Service[] = [
     {
         title: 'Orangutan and Dayak Village Cruises',
         cruise: 'Rahai’i Pangun',
         slug: 'Rahai-i-Pangun',
         image: '/boats-01.jpeg',
         tag: 'MID WEEK',
-        date: 'March 04, 2025',
+        date: {
+            checkIn: 'March 04, 2025',
+        },
         cabin: 'Superior',
         price: '800',
         days: '2D1N',
@@ -18,7 +20,9 @@ export const dataServices: Services[] = [
         slug: 'Rahai-i-Pangun',
         image: '/boats-01.jpeg',
         tag: 'WEEKEND',
-        date: 'March 08, 2025',
+        date: {
+            checkIn: 'March 08, 2025',
+        },
         cabin: 'Double',
         price: '1.200',
         days: '3D2N',
@@ -29,7 +33,9 @@ export const dataServices: Services[] = [
         slug: 'spirit-of-kalimantan ',
         image: '/boats-01.jpeg',
         tag: 'WEEKEND',
-        date: 'March 08, 2025',
+        date: {
+            checkIn: 'March 08, 2025',
+        },
         cabin: 'Twin',
         price: '1.500',
         days: '3D2N',
@@ -40,7 +46,9 @@ export const dataServices: Services[] = [
         slug: 'spirit-of-kalimantan ',
         image: '/boats-01.jpeg',
         tag: 'WEEKEND',
-        date: 'March 08, 2025',
+        date: {
+            checkIn: 'March 08, 2025',
+        },
         cabin: 'Twin',
         price: '1.500',
         days: '3D2N',
@@ -51,7 +59,9 @@ export const dataServices: Services[] = [
         slug: 'spirit-of-kalimantan ',
         image: '/boats-01.jpeg',
         tag: 'WEEKEND',
-        date: 'March 08, 2025',
+        date: {
+            checkIn: 'March 08, 2025',
+        },
         cabin: 'Twin',
         price: '1.500',
         days: '3D2N',
@@ -62,7 +72,9 @@ export const dataServices: Services[] = [
         slug: 'spirit-of-kalimantan ',
         image: '/boats-01.jpeg',
         tag: 'WEEKEND',
-        date: 'March 08, 2025',
+        date: {
+            checkIn: 'March 08, 2025',
+        },
         cabin: 'Twin',
         price: '1.500',
         days: '3D2N',
@@ -73,7 +85,9 @@ export const dataServices: Services[] = [
         slug: 'spirit-of-kalimantan ',
         image: '/boats-01.jpeg',
         tag: 'WEEKEND',
-        date: 'March 08, 2025',
+        date: {
+            checkIn: 'March 08, 2025',
+        },
         cabin: 'Twin',
         price: '1.500',
         days: '3D2N',
@@ -84,7 +98,9 @@ export const dataServices: Services[] = [
         slug: 'spirit-of-kalimantan ',
         image: '/boats-01.jpeg',
         tag: 'WEEKEND',
-        date: 'March 08, 2025',
+        date: {
+            checkIn: 'March 08, 2025',
+        },
         cabin: 'Twin',
         price: '1.500',
         days: '3D2N',
@@ -95,7 +111,9 @@ export const dataServices: Services[] = [
         slug: 'spirit-of-kalimantan ',
         image: '/boats-01.jpeg',
         tag: 'WEEKEND',
-        date: 'March 08, 2025',
+        date: {
+            checkIn: 'March 08, 2025',
+        },
         cabin: 'Twin',
         price: '1.500',
         days: '3D2N',
