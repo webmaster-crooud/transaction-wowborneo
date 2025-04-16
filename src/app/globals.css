@@ -67,3 +67,54 @@ html {
         @apply bg-background text-foreground;
     }
 }
+
+/* Contoh: copy aturan dari .ProseMirror ke .rich-text-preview */
+.rich-text-preview {
+    outline: none;
+}
+
+.rich-text-preview p {
+    margin: 0 0 0.1rem 0;
+}
+
+.rich-text-preview h1 {
+    font-size: 2em;
+    margin: 0.67em 0;
+}
+
+.rich-text-preview h2 {
+    font-size: 1.5em;
+    margin: 0.75em 0;
+}
+
+.rich-text-preview h3 {
+    font-size: 1.17em;
+    margin: 0.83em 0;
+}
+
+/* Alignment */
+.rich-text-preview[data-text-align='left'] {
+    text-align: left;
+}
+
+.rich-text-preview[data-text-align='center'] {
+    text-align: center;
+}
+
+.rich-text-preview[data-text-align='right'] {
+    text-align: right;
+}
+
+/* Lists */
+.rich-text-preview ul,
+.rich-text-preview ol {
+    padding-left: 1.5rem;
+}
+
+.rich-text-preview ul {
+    list-style-type: disc;
+}
+
+.rich-text-preview ol {
+    list-style-type: decimal;
+}

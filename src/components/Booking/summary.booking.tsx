@@ -1,6 +1,35 @@
+'use client';
+import { useAtom } from 'jotai';
 import { SummaryCard } from '../ui/Card/Summary.card';
+import { formatCurrency } from '@/utils/main';
+import { Loader } from 'lucide-react';
+import { transactionAtom } from '@/stores/transaction';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export function SummaryBooking() {
+    const [transaction] = useAtom(transactionAtom);
+
+    const router = useRouter();
+    useEffect(() => {
+        // Check localStorage directly
+        const transactionBody = localStorage.getItem('transactionBody');
+        if (!transactionBody) {
+            router.push('/');
+        }
+    }, [router]);
+    if (!transaction) return <Loader />;
+
+    // Calculate adults and children counts
+    const adults = transaction.guests.filter(guest => !guest.children).length;
+    const children = transaction.guests.filter(guest => guest.children).length;
+
+    // Calculate cruise subtotal with 50% discount for children
+    // const cruiseSubtotal = adults * Number(transaction.price) + children * Number(transaction.price) * 0.5;
+
+    // // Calculate total price including addons
+    // const totalPrice = transaction.addons.reduce((sum, addon) => sum + Number(addon.totalPrice), cruiseSubtotal);
+
     return (
         <div className="gap-5 relative top-0">
             <div className="flex flex-col gap-5 col-span-2 p-6 border sticky top-5 border-stone-300 rounded-2xl">
@@ -10,35 +39,60 @@ export function SummaryBooking() {
                 </div>
 
                 <div className="flex flex-col gap-y-6">
-                    <SummaryCard title="Cruise: Title of Cruise" />
+                    <SummaryCard title={`Cruise: ${transaction.cruise?.title || ''}`} />
 
-                    {/* Adds on */}
+                    {/* Addons */}
                     <SummaryCard title="Adds On">
-                        <>
-                            <h5 className="font-bold">Dinner at longhouse</h5>
-                            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium</p>
-                        </>
+                        {transaction.addons.map(addon => (
+                            <div key={addon.id} className="flex flex-col gap-y-3">
+                                <div className="flex items-center justify-start gap-1">
+                                    <div>
+                                        <h5 className="font-bold">{addon.title}</h5>
+                                        <p className="text-xs" dangerouslySetInnerHTML={{ __html: addon.description || '' }} />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </SummaryCard>
 
+                    {/* Price Breakdown */}
                     <SummaryCard title="Price" className="gap-4">
                         <>
-                            <div className="flex items-center justify-between gap-5">
-                                <span>Subtotal 3 Adult</span>
-                                <p className="font-medium text-gray-600">$4,500.00</p>
-                            </div>
-                            <div className="flex items-center justify-between gap-5">
-                                <span>Subtotal 1 Children</span>
-                                <p className="font-medium text-gray-600">$750.00</p>
-                            </div>
-                            <div className="flex items-center justify-between gap-5">
-                                <span>Addon</span>
-                                <p className="font-medium text-gray-600">$2,000.00</p>
-                            </div>
+                            {/* Adult Pricing */}
+                            {adults > 0 && (
+                                <div className="flex items-center justify-between gap-5">
+                                    <span>
+                                        {adults} Adult{adults !== 1 ? 's' : ''}
+                                    </span>
+                                    <p className="font-medium text-gray-600">{formatCurrency(String(adults * Number(transaction.price)))}</p>
+                                </div>
+                            )}
+
+                            {/* Children Pricing */}
+                            {children > 0 && (
+                                <div className="flex items-center justify-between gap-5">
+                                    <span>
+                                        {children} Child{children !== 1 ? 'ren' : ''} (50% off)
+                                    </span>
+                                    <p className="font-medium text-gray-600">{formatCurrency(String(children * Number(transaction.price) * 0.5))}</p>
+                                </div>
+                            )}
+
+                            {/* Addons Pricing */}
+                            {transaction.addons.map(addon => (
+                                <div key={addon.id} className="flex items-center justify-between gap-5">
+                                    <div className="flex items-center justify-start gap-1">
+                                        <p className="text-xs text-gray-600">({addon.qty})</p>
+                                        <span>{addon.title}</span>
+                                    </div>
+                                    <p className="font-medium text-gray-600">{formatCurrency(addon.totalPrice)}</p>
+                                </div>
+                            ))}
 
                             <div className="border-b-2 border-gray-300 border-dashed w-full h-1" />
                             <div className="flex items-center justify-between gap-5 font-bold text-black">
                                 <span>Total Payment</span>
-                                <p>$5,250.00</p>
+                                <p>{formatCurrency(String(transaction.subTotal))}</p>
                             </div>
                         </>
                     </SummaryCard>
@@ -46,7 +100,7 @@ export function SummaryBooking() {
 
                 <div className="flex items-center justify-between gap-5">
                     <h6 className="text-2xl font-bold">Payment</h6>
-                    <p className="text-[20px] font-bold">$5,250.00</p>
+                    <p className="text-[20px] font-bold">{formatCurrency(String(transaction.finalTotal))}</p>
                 </div>
             </div>
         </div>

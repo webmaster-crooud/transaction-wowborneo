@@ -33,7 +33,7 @@ export function Steps() {
     const pathName = usePathname();
 
     return (
-        pathName !== '/' && (
+        (pathName === '/booking-itinerary' || pathName === '/guest-details' || pathName === '/payment' || pathName === '/confirm') && (
             <div className="px-12 relative z-40 py-3 flex items-center justify-center bg-light-brown gap-5">
                 {dataSteps.map((steps, i) => (
                     <React.Fragment key={i + 1}>

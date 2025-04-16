@@ -3,6 +3,8 @@ import './globals.css';
 import { Providers } from '@/Providers';
 import { MainNavbar } from '@/components/ui/Main.navbar';
 import { Open_Sans } from 'next/font/google';
+import { ErrorAlert } from '@/components/Alert/Error.alert';
+import { NotificationAlert } from '@/components/Alert/Notification.alert';
 
 const openSans = Open_Sans({
     subsets: ['latin'],
@@ -23,8 +25,10 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`antialiased w-full mx-auto overflow-x-hidden ${openSans.className}`}>
+            <body className={`antialiased w-full mx-auto scroll-smooth overflow-x-hidden ${openSans.className}`}>
                 <Providers>
+                    <ErrorAlert />
+                    <NotificationAlert />
                     <MainNavbar key={'navbar'} />
                     <main className="px-12" key={'main'}>
                         {children}

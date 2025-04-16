@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Provider as JotaiProvider } from 'jotai';
 import React from 'react';
+import { AuthProvider } from './Auth.provider';
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -16,7 +17,7 @@ export const queryClient = new QueryClient({
 export const Providers = ({ children }: { children: React.ReactNode }) => (
     <JotaiProvider>
         <QueryClientProvider client={queryClient}>
-            {children}
+            <AuthProvider>{children}</AuthProvider>
             <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
     </JotaiProvider>
