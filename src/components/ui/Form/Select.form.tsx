@@ -3,13 +3,13 @@ import { SelectItem, Select, SelectContent, SelectTrigger, SelectValue } from '.
 
 type propsSelectForm = {
     name: string | number;
-    defaultValue: string | number;
+    defaultValue?: string | number;
     setValue: (value: string | number) => void;
     listData: Array<ListDataInterface>;
 };
 
 export interface ListDataInterface {
-    value: string | number;
+    value?: string | number;
     name: string | number;
 }
 

@@ -1,11 +1,11 @@
 // hooks/useCoverUpload.ts
-import { useState, useEffect, useCallback } from "react";
-import { useSetAtom } from "jotai";
-import { errorAtom } from "~/stores";
-import { IImage } from "~/types/cruise";
-import { getCoverImage, saveCoverImage, deleteCoverImage } from "~/lib/idb";
+import { useState, useEffect, useCallback } from 'react';
+import { useSetAtom } from 'jotai';
+import { errorAtom } from '@/stores';
+import { deleteCoverImage, getCoverImage, saveCoverImage } from '@/lib/idb';
+import { IImage } from '@/types';
 
-export const useCoverUpload = (entityType: string, entityId: string, storageKeyPrefix: string = "cover", imageType: "PHOTO" | "COVER" = "COVER") => {
+export const useCoverUpload = (entityType: string, entityId: string, storageKeyPrefix: string = 'cover', imageType: 'PHOTO' | 'COVER' = 'COVER') => {
     const [cover, setCover] = useState<IImage | null>(null);
     const setError = useSetAtom(errorAtom);
     const storageKey = `${storageKeyPrefix}_${entityType}_${entityId}`;
@@ -21,7 +21,7 @@ export const useCoverUpload = (entityType: string, entityId: string, storageKeyP
                         imageType: imageType,
                         entityType,
                         source: URL.createObjectURL(blob),
-                        alt: "Cover image",
+                        alt: 'Cover image',
                         entityId,
                     });
                 }
@@ -35,7 +35,7 @@ export const useCoverUpload = (entityType: string, entityId: string, storageKeyP
             try {
                 const MAX_SIZE = 5 * 1024 * 1024;
                 if (file.size > MAX_SIZE) {
-                    throw new Error("Ukuran file melebihi 5MB");
+                    throw new Error('Ukuran file melebihi 5MB');
                 }
 
                 const coverId = Date.now();
@@ -44,7 +44,7 @@ export const useCoverUpload = (entityType: string, entityId: string, storageKeyP
 
                 const newCover: IImage = {
                     id: coverId,
-                    imageType: "COVER",
+                    imageType: 'COVER',
                     entityType,
                     source: URL.createObjectURL(file),
                     alt: file.name,
@@ -54,11 +54,11 @@ export const useCoverUpload = (entityType: string, entityId: string, storageKeyP
                 setCover(newCover);
                 return newCover;
             } catch (error) {
-                setError({ message: error instanceof Error ? error.message : "Gagal upload cover" });
+                setError({ message: error instanceof Error ? error.message : 'Gagal upload cover' });
                 return null;
             }
         },
-        [entityType, entityId, storageKey, setError]
+        [entityType, entityId, storageKey, setError],
     );
 
     const removeCover = useCallback(async () => {

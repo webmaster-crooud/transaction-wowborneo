@@ -12,10 +12,41 @@ import { motion } from 'framer-motion';
 import { useSetAtom } from 'jotai';
 import { useState } from 'react';
 
+export interface ITransactionParams {
+    cruiseId?: string;
+    month?: string | Date;
+    pax?: number;
+}
 export default function MainPage() {
     const setError = useSetAtom(errorAtom);
-    const fetchSchedule = async () => {
-        const { data } = await api.get<ApiSuccessResponse<IScheduleResponse[]>>(`${process.env.NEXT_PUBLIC_API}/transaction`);
+    const [fill, setFill] = useState<ITransactionParams>({
+        cruiseId: '',
+        month: '',
+        pax: 1,
+    });
+    // 2. Buat helper untuk membangun URL
+    function buildTransactionUrl(baseUrl: string, params: ITransactionParams): string {
+        const searchParams = new URLSearchParams();
+
+        if (params.cruiseId) {
+            searchParams.append('cruiseId', params.cruiseId);
+        }
+        if (params.month) {
+            searchParams.append('month', params.month.toString());
+        }
+        if (params.pax !== undefined) {
+            searchParams.append('pax', params.pax.toString());
+        }
+
+        const queryString = searchParams.toString();
+        return queryString ? `${baseUrl}/transaction?${queryString}` : `${baseUrl}/transaction`;
+    }
+
+    const fetchSchedule = async (cruiseId: string, month: string | Date, pax: number) => {
+        const params: ITransactionParams = { cruiseId, month, pax };
+        const url = buildTransactionUrl(process.env.NEXT_PUBLIC_API!, params);
+
+        const { data } = await api.get<ApiSuccessResponse<IScheduleResponse[]>>(url);
         return data.data;
     };
 
@@ -26,15 +57,12 @@ export default function MainPage() {
         error,
         // isFetching,
         // status,
-        // refetch,
     } = useQuery({
-        queryKey: ['schedule'],
-        queryFn: fetchSchedule,
+        queryKey: ['schedule', fill.cruiseId, fill.month, fill.pax],
+        queryFn: () => fetchSchedule(fill.cruiseId || '', fill.month || '', fill.pax || 1),
         staleTime: 5 * 60 * 1000, // 5 menit
         gcTime: 15 * 60 * 1000, // Ganti cacheTime menjadi gcTime
     });
-
-    const [guest, setGuest] = useState<number>(1);
 
     if (isLoading) return <Loader />;
     if (isError) {
@@ -43,27 +71,9 @@ export default function MainPage() {
     return (
         <>
             <motion.article initial={{ height: '0px' }} animate={{ height: '100%' }} transition={{ duration: 0.5 }} className="relative overflow-hidden" exit={{ x: '-100rem', opacity: '0' }}>
-                <FilterForm guest={guest} setGuest={setGuest} />
-                <div className="flex items-center justify-between gap-5">
-                    <div className="flex items-center justify-start gap-3">
-                        <p>You have selected an item within the following criteria:</p>
-                        <p className="flex items-center justify-start gap-1">
-                            <b>Cruise:</b>
-                            <span>All Cruise</span>
-                        </p>
-                        <p className="flex items-center justify-start gap-1">
-                            <b>Month/Years:</b>
-                            <span>March 2025</span>
-                        </p>
-                        <p className="flex items-center justify-start gap-1">
-                            <b>Guest:</b>
-                            <span>{guest}</span>
-                        </p>
-                    </div>
-                    <p>We found {schedule?.length} itineraries available for You</p>
-                </div>
+                <FilterForm fetchSchedule={() => fetchSchedule(fill.cruiseId || '', fill.month || '', fill.pax || 1)} fill={fill} setFill={setFill} schedule={schedule || []} />
 
-                <TableService guest={guest} services={schedule || []} />
+                <TableService guest={fill.pax || 1} services={schedule || []} />
                 <div className="flex items-center justify-between gap-5 mt-5 mb-20">
                     <p>
                         Can&apos;t find the date you&apos;re looking for? Request a <span className="uppercase font-bold italic">private booking</span> to secure your preferred schedulle.

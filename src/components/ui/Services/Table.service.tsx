@@ -1,5 +1,6 @@
 'use client';
 import { IScheduleResponse } from '@/types';
+import { formatCurrency } from '@/utils/main';
 import { IconLoader3 } from '@tabler/icons-react';
 
 import Image from 'next/image';
@@ -36,7 +37,7 @@ export function TableService({ services, guest }: { services: IScheduleResponse[
                                     </span>
                                 </div>
                                 <h3 className="font-bold text-sm">
-                                    Departure at {service.departure}, {service.boatTitle}&apos;s Boat
+                                    Departure at {service.departure}, {service.boatName}&apos;s Boat
                                 </h3>
                             </div>
                         </div>
@@ -56,7 +57,7 @@ export function TableService({ services, guest }: { services: IScheduleResponse[
                                 </>
                             ) : (
                                 <>
-                                    Start ${service.min_price}.00/ {service.duration} Days/Pax
+                                    Start {formatCurrency(service.minPrice.toString())}/ {service.duration} Days/Pax
                                 </>
                             )}
                         </button>

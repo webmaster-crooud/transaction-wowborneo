@@ -14,7 +14,7 @@ export const MainBooking = ({ children }: { children: React.ReactNode }) => {
             <div className="flex flex-col gap-y-8 col-span-2 min-h-screen">{children}</div>
 
             <SummaryBooking />
-            {pathName !== '/confirmation' && pathName !== '/payment' && (
+            {pathName !== '/confirmation' && pathName !== '/payment' && pathName !== '/guest-details' && (
                 <div className="flex items-center justify-start gap-6 mt-10 col-span-3">
                     {/* Summary */}
                     <ActionButton

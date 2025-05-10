@@ -1,19 +1,26 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-export default function Timer() {
+export default function Timer({ timer }: { timer: number }) {
     // 24 jam = 86400 detik
-    const [timeLeft, setTimeLeft] = useState(86400);
-
+    const [timeLeft, setTimeLeft] = useState(timer);
+    const router = useRouter();
+    useEffect(() => {
+        setTimeLeft(timer);
+    }, [timer, router]);
     useEffect(() => {
         const intervalId = setInterval(() => {
             setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+            if (timeLeft === 0) {
+                router.push('/');
+            }
         }, 1000);
 
         // Bersihkan interval saat komponen di-unmount
         return () => clearInterval(intervalId);
-    }, []);
+    }, [router, timeLeft]);
 
     // Konversi detik menjadi jam, menit, detik
     const hours = Math.floor(timeLeft / 3600);

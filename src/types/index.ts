@@ -40,20 +40,20 @@ export interface IScheduleResponse {
     departureAt: string | Date;
     arrivalAt: string | Date;
     cruiseTitle: string;
-    boatTitle: string;
+    boatName: string;
     departure: string;
     status: STATUS; // Bisa diganti dengan enum jika sudah ada
-    min_price: number;
-    availableCabin: number;
-    bookedCabin: number;
+    minPrice: number;
     cover: string | null;
     duration: number;
+    maxCapacity: number;
 }
 
 export interface IDetailScheduleResponse {
     id: string;
     departureAt: string | Date;
     arrivalAt: string | Date;
+    totalBooking: number;
     status: STATUS;
     min_price: string | number;
     cruise: {
@@ -78,4 +78,13 @@ export interface IDetailScheduleResponse {
         }>;
         cabins: Array<{ id: string | number; name: string; type: TYPECABIN; maxCapacity: number; description: string | null; price: string; cover: string }>;
     };
+}
+
+export interface IImage {
+    id?: number;
+    imageType: 'COVER' | 'PHOTO';
+    alt: string | null;
+    entityId: string;
+    entityType: string;
+    source: string;
 }

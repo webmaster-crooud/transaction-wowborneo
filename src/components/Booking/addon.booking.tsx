@@ -1,63 +1,71 @@
 'use client';
-import { IconCircleMinus, IconCirclePlus, IconInfoCircle } from '@tabler/icons-react';
+import { IconCircleMinus, IconCirclePlus, IconInfoCircle, IconLoader3 } from '@tabler/icons-react';
 import Image from 'next/image';
 import { BookingCard } from '../ui/Card/Booking.card';
-import { IBookingItineraryResponse } from '@/types/transaction';
+import { IBookingItineraryResponse, ITransactionRequest } from '@/types/transaction';
 import { formatCurrency } from '@/utils/main';
-import { useAtom } from 'jotai';
-import { transactionAtom } from '@/stores/transaction';
 
-export function AddonBooking({ addons }: { addons: IBookingItineraryResponse['addons'] }) {
-    const [transaction, setTransaction] = useAtom(transactionAtom);
-    const updateAddonQty = (addonId: number, operation: 'increment' | 'decrement') => {
-        setTransaction(prev => {
-            const existingIndex = prev.addons.findIndex(a => a.id === addonId);
-            const newAddons = [...prev.addons];
+import React, { useCallback, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { api } from '@/utils/api';
+import { useTransaction } from '@/hooks/useTransaction';
+import { useSetAtom } from 'jotai';
+import { errorAtom } from '@/stores';
+import { ApiSuccessResponse } from '@/types';
+import { fetchError } from '@/utils/fetchError';
 
-            // Cari data addon lengkap dari props
-            const selectedAddon = addons.find(a => a.id === addonId);
-            const price = Number(selectedAddon?.price || 0);
+type propsAddonBooking = {
+    addons: IBookingItineraryResponse['addons'];
+    scheduleId: string;
+};
 
-            if (existingIndex > -1) {
-                const currentQty = newAddons[existingIndex].qty;
-                const newQty = operation === 'increment' ? currentQty + 1 : Math.max(0, currentQty - 1);
+export function AddonBooking({ addons, scheduleId }: propsAddonBooking) {
+    const { transaction, setTransaction } = useTransaction(scheduleId);
+    const { account } = useAuth();
+    const setError = useSetAtom(errorAtom);
+    const [loading, setLoading] = useState<number | null>(null);
 
-                if (newQty === 0) {
-                    newAddons.splice(existingIndex, 1);
-                } else {
-                    newAddons[existingIndex] = {
-                        ...newAddons[existingIndex],
-                        qty: newQty,
-                        totalPrice: String(newQty * price),
-                    };
+    const handleSetAddon = useCallback(
+        async (newAddonsBody: { id: number; qty: number }[], idx: number) => {
+            setLoading(idx);
+            try {
+                if (!account.email) {
+                    setError({ message: 'You must login first!' });
+                    return;
                 }
-            } else if (operation === 'increment' && selectedAddon) {
-                // Tambahkan data lengkap saat pertama kali increment
-                newAddons.push({
-                    id: addonId,
-                    qty: 1,
-                    price: String(price),
-                    totalPrice: String(price),
-                    title: selectedAddon.title,
-                    description: selectedAddon.description || '',
-                });
+                const { data } = await api.patch<ApiSuccessResponse<ITransactionRequest>>(`${process.env.NEXT_PUBLIC_API}/cart/addons/${scheduleId}`, newAddonsBody, { withCredentials: true });
+                setTransaction(data.data);
+            } catch (error) {
+                fetchError(error, setError);
+            } finally {
+                setLoading(null);
             }
+        },
+        [account.email, scheduleId, setError, setTransaction],
+    );
+    const updateAddonQty = useCallback(
+        async (addonId: number, type: 'plus' | 'min') => {
+            setTransaction(prev => {
+                let newBody: { id: number; qty: number }[];
 
-            const addonsPrice = newAddons.reduce((sum, addon) => sum + Number(addon.totalPrice), 0);
+                if (type === 'plus') {
+                    const exists = prev.addons.find(a => a.id === addonId);
+                    newBody = exists ? prev.addons.map(a => (a.id === addonId ? { ...a, qty: a.qty + 1 } : a)) : [...prev.addons, { id: addonId, qty: 1 }];
+                } else {
+                    newBody = prev.addons.map(a => (a.id === addonId ? { ...a, qty: Math.max(a.qty - 1, 0) } : a)).filter(a => a.qty > 0);
+                }
 
-            console.log(`Price: ${price} + addonsPrice: ${addonsPrice} = ${price + addonsPrice}`);
-            return {
-                ...prev,
-                addons: newAddons,
-                addonPrice: String(addonsPrice), // Simpan ke state
-                subTotal: String(Number(prev.price) + addonsPrice),
-                finalTotal: String(Number(prev.price) + addonsPrice),
-            };
-        });
-    };
+                // langsung kirim newBody yang sudah ter-update
+                handleSetAddon(newBody, addonId);
+
+                return { ...transaction, newBody };
+            });
+        },
+        [handleSetAddon, setTransaction, transaction],
+    );
 
     return addons.map(addon => {
-        const selectedAddon = transaction.addons.find(a => a.id === addon.id);
+        const selectedAddon = transaction?.addons.find(txAddon => txAddon.id === addon.id);
         const currentQty = selectedAddon?.qty || 0;
         return (
             <BookingCard className="flex flex-col gap-y-3" key={addon.id}>
@@ -80,11 +88,11 @@ export function AddonBooking({ addons }: { addons: IBookingItineraryResponse['ad
                     <h6 className="font-bold text-[20px]">{formatCurrency(addon.price.toString())}/pax</h6>
 
                     <div className="flex items-center justify-center p-3 border border-brown rounded-xl gap-3">
-                        <button onClick={() => updateAddonQty(addon.id, 'decrement')} disabled={currentQty === 0}>
+                        <button onClick={() => updateAddonQty(addon.id, 'min')} disabled={currentQty === 0}>
                             <IconCircleMinus size={18} className={`text-brown ${currentQty === 0 ? 'opacity-50 cursor-not-allowed' : ''}`} />
                         </button>
-                        <span className="text-sm text-brown min-w-[20px] text-center">{currentQty}</span>
-                        <button onClick={() => updateAddonQty(addon.id, 'increment')}>
+                        <span className="text-sm text-brown min-w-[20px] text-center">{loading === addon.id ? <IconLoader3 size={20} stroke={2} className="animate-spin" /> : currentQty}</span>
+                        <button onClick={() => updateAddonQty(addon.id, 'plus')}>
                             <IconCirclePlus size={18} className="text-brown" />
                         </button>
                     </div>

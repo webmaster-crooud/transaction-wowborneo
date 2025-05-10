@@ -7,22 +7,24 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import Timer from '@/components/ui/timer';
-import { transactionAtom } from '@/stores/transaction';
+import { scheduleIdAtom } from '@/stores/transaction';
 import { useAtom, useSetAtom } from 'jotai';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { formatCurrency } from '@/utils/main';
 import { api } from '@/utils/api';
 import { fetchError } from '@/utils/fetchError';
 import { errorAtom } from '@/stores';
+import { useTransaction } from '@/hooks/useTransaction';
 
 export default function PaymentPage() {
-    const [transaction, setTransaction] = useAtom(transactionAtom);
-    const [couponCode, setCouponCode] = useState('');
+    // const [couponCode, setCouponCode] = useState('');
+    const [scheduleId] = useAtom(scheduleIdAtom);
+    const { transaction, setTransaction } = useTransaction(scheduleId);
     const [agreed, setAgreed] = useState(false);
     const [loading, setLoading] = useState(false);
     const setError = useSetAtom(errorAtom);
-    console.log(transaction);
 
+    console.log(transaction);
     // Calculate totals
     useEffect(() => {
         const subTotal = transaction.subTotal;
@@ -37,31 +39,53 @@ export default function PaymentPage() {
     }, [setTransaction, transaction.subTotal, transaction.discount]);
 
     // Handle coupon application
-    const applyCoupon = async () => {
-        try {
-            setLoading(true);
-            const { data } = await api.post('/coupons/validate', { code: couponCode });
+    // const applyCoupon = async () => {
+    //     try {
+    //         setLoading(true);
+    //         const { data } = await api.post('/coupons/validate', { code: couponCode });
 
-            setTransaction(prev => ({
-                ...prev,
-                discount: String(Number(prev.subTotal) * (data.discountPercentage / 100)),
-            }));
-        } catch (err) {
-            fetchError(err, setError);
-            setTransaction(prev => ({ ...prev, discount: '0' }));
-        } finally {
-            setLoading(false);
-        }
-    };
+    //         setTransaction(prev => ({
+    //             ...prev,
+    //             discount: String(Number(prev.subTotal) * (data.discountPercentage / 100)),
+    //         }));
+    //     } catch (err) {
+    //         fetchError(err, setError);
+    //         setTransaction(prev => ({ ...prev, discount: '0' }));
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    const handleChangeMethod = useCallback(
+        async (method: 'dp' | 'full') => {
+            try {
+                const { data } = await api.patch(
+                    `${process.env.NEXT_PUBLIC_API}/cart/method/${scheduleId}`,
+                    { method },
+                    {
+                        withCredentials: true,
+                    },
+                );
+
+                setTransaction(data.data);
+            } catch (error) {
+                fetchError(error, setError);
+            }
+        },
+        [scheduleId, setError, setTransaction],
+    );
 
     // Handle payment submission
     const handlePayment = async () => {
         setLoading(true);
         try {
-            const { data } = await api.post('/transaction', transaction, {
-                withCredentials: true,
-            });
-            console.log(data);
+            const { data } = await api.post(
+                '/transaction/' + scheduleId,
+                {},
+                {
+                    withCredentials: true,
+                },
+            );
             window.location.href = data.data;
         } catch (err) {
             fetchError(err, setError);
@@ -77,16 +101,16 @@ export default function PaymentPage() {
             <MainBooking>
                 <BookingCard className="flex items-center justify-between gap-5">
                     <p className="text-sm font-bold text-black">Maximum payment in 24 hours</p>
-                    <Timer />
+                    <Timer timer={transaction.ttl || 3600} />
                 </BookingCard>
 
-                <BookingCard>
+                {/* <BookingCard>
                     <h5 className="text-2xl font-bold mb-3">Coupon Apply</h5>
                     <div className="flex items-center justify-end gap-5">
                         <input className="w-full border border-stone-300 text-sm outline-brown text-gray-400 rounded-xl py-3 px-5" value={couponCode} onChange={e => setCouponCode(e.target.value)} placeholder="CODECOUPONFREE" />
                         <ActionButton className="w-4/12" title="Apply Coupon" onClick={applyCoupon} disabled={loading} />
                     </div>
-                </BookingCard>
+                </BookingCard> */}
 
                 <BookingCard className="flex flex-col gap-y-6">
                     <div>
@@ -94,24 +118,13 @@ export default function PaymentPage() {
                         <p className="text-sm text-gray-400">Attention: We only receive online payment</p>
                     </div>
 
-                    <RadioGroup
-                        value={transaction.method ?? ''}
-                        onValueChange={value =>
-                            setTransaction(prev => ({
-                                ...prev,
-                                method: value as 'full' | 'dp',
-                                amountPayment: value === 'dp' ? Number(transaction.subTotal) * 0.25 : Number(transaction.subTotal),
-                                amountUnderPayment: value === 'dp' ? Number(transaction.subTotal) * 0.75 : 0,
-                            }))
-                        }
-                        className="flex flex-col w-full gap-y-3"
-                    >
+                    <RadioGroup value={transaction.method ?? ''} onValueChange={v => handleChangeMethod(v as 'dp' | 'full')} className="flex flex-col w-full gap-y-3">
                         <div className="flex items-center space-x-2 p-3 rounded-lg bg-stone-100 w-full cursor-pointer">
                             <RadioGroupItem value="dp" id="dp" checked={transaction.method === 'dp'} />
                             <Label htmlFor="dp" className="text-sm font-bold w-full">
                                 <span>Deposit 25%</span>
-                                <span className="float-end">{formatCurrency(String(Number(transaction.subTotal) * 0.25))}</span>
-                                <p className="text-xs text-gray-400 mt-1">Remaining: {formatCurrency(String(Number(transaction.subTotal) * 0.75))}</p>
+                                <span className="float-end">{formatCurrency(String(Number(transaction.finalTotal) * 0.25))}</span>
+                                <p className="text-xs text-gray-400 mt-1">Remaining: {formatCurrency(String(Number(transaction.finalTotal) * 0.75))}</p>
                             </Label>
                         </div>
 

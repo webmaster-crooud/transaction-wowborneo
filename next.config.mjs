@@ -11,8 +11,17 @@ const nextConfig = {
             },
         ];
     },
+
     images: {
-        domains: ['is3.cloudhost.id'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'is3.cloudhost.id',
+                port: '',
+                pathname: '/**',
+                search: '',
+            },
+        ],
     },
     // async redirects() {
     //     return [

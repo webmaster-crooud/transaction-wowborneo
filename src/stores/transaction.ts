@@ -1,6 +1,7 @@
 import { ITransactionRequest } from '@/types/transaction';
+import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
-export const transactionAtom = atomWithStorage<ITransactionRequest>('transactionBody', {
+export const transactionAtom = atom<ITransactionRequest & { ttl?: number }>({
     email: '',
     cabinId: '',
     scheduleId: '',
@@ -18,3 +19,5 @@ export const transactionAtom = atomWithStorage<ITransactionRequest>('transaction
     method: null,
     addonPrice: '',
 });
+
+export const scheduleIdAtom = atomWithStorage<string>('scheduleBody', '');
